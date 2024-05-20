@@ -20,8 +20,11 @@ vscode: ctrl+shift+p - python select interpreter...
 
 docker build -f Dockerfile.dev -t pamps:latest .
 docker run --rm -it -v $(pwd):/home/app/api -p 8000:8000 pamps
-docker compose up -d
+docker compose up -d #--build
+docker compose logs -f
 http://localhost:8000/docs
+docker compose exec api bash
+pamps --help
 
 alembic init migrations
 edit migrations/env.py
