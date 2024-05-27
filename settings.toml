@@ -1,0 +1,2 @@
+[development]
+BACKEND_CORS_ORIGINS = ["http://localhost:8000"]
