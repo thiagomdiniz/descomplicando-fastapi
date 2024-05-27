@@ -2,15 +2,15 @@ from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session, select
 
-from pamps.auth import AuthenticatedUser
-from pamps.db import ActiveSession
-from pamps.models.post import (
+from ..auth import AuthenticatedUser
+from ..db import ActiveSession
+from ..models.post import (
     Post,
     PostRequest,
     PostResponse,
     PostResponseWithReplies,
 )
-from pamps.models.user import User
+from ..models.user import User
 
 router = APIRouter()
 

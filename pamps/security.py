@@ -1,7 +1,7 @@
 """Security utilities"""
 from passlib.context import CryptContext
 
-from pamps.config import settings
+from .config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

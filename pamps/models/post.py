@@ -7,7 +7,7 @@ from pydantic import BaseModel, Extra
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from pamps.models.user import User
+    from .user import User
 
 
 class Post(SQLModel, table=True):

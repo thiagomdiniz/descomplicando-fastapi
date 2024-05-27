@@ -1,10 +1,11 @@
 from typing import Optional, TYPE_CHECKING
 from sqlmodel import Field, SQLModel, Relationship
-from pamps.security import HashedPassword
 from pydantic import BaseModel
 
+from ..security import HashedPassword
+
 if TYPE_CHECKING:
-    from pamps.models.post import Post
+    from .post import Post
 
 
 class User(SQLModel, table=True):

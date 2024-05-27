@@ -8,10 +8,10 @@ from jose import JWTError, jwt
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
-from pamps.config import settings
-from pamps.db import engine
-from pamps.models.user import User
-from pamps.security import verify_password
+from .config import settings
+from .db import engine
+from .models.user import User
+from .security import verify_password
 
 SECRET_KEY = settings.security.secret_key
 ALGORITHM = settings.security.algorithm
