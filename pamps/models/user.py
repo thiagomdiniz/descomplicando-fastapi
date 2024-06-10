@@ -1,12 +1,15 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Annotated
 from sqlmodel import Field, SQLModel, Relationship
-from pydantic import BaseModel
+from pydantic import BaseModel, BeforeValidator
 
-from ..security import HashedPassword
+from ..security import get_password_hash
+#from ..security import HashedPassword # pydantic <2
 
 if TYPE_CHECKING:
     from .post import Post
 
+
+HashedPassword = BeforeValidator(get_password_hash)
 
 class User(SQLModel, table=True):
     """Represents the User Model"""
@@ -16,7 +19,8 @@ class User(SQLModel, table=True):
     username: str = Field(unique=True, nullable=False)
     avatar: Optional[str] = None
     bio: Optional[str] = None
-    password: HashedPassword
+    password: Annotated[str, HashedPassword]
+    #password: HashedPassword # pydantic <2
 
     # it populates the .user attribute on the Post Model
     posts: list["Post"] = Relationship(back_populates="user")

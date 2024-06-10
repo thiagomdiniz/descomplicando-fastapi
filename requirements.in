@@ -10,4 +10,5 @@ python-multipart
 psycopg2-binary
 alembic
 rich
-pydantic<2
+pydantic
+#pydantic<2
