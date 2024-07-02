@@ -64,7 +64,14 @@ async def create_post(
 
     post.user_id = user.id
 
-    db_post = Post.from_orm(post)  # transform PostRequest in Post
+    db_post = Post.model_validate(post)  # transform PostRequest in Post
+
+    if post.parent_id:
+        query = select(Post.id).where(Post.id == post.parent_id)
+        parent = session.exec(query).first()
+        if not parent:
+            db_post.parent_id = None
+    
     session.add(db_post)
     session.commit()
     session.refresh(db_post)
