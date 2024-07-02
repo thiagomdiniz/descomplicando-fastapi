@@ -6,6 +6,7 @@ from sqlmodel import Session, select
 from .config import settings
 from .db import engine
 from .models import User, Post, SQLModel
+from .models.user import UserRequest
 
 main = typer.Typer(name="Pamps CLI")
 
@@ -53,12 +54,13 @@ def user_list():
 def create_user(email: str, username: str, password: str):
     """Create user"""
     with Session(engine) as session:
-        user = User(email=email, username=username, password=password)
-        session.add(user)
+        user = UserRequest(email=email, username=username, password=password)
+        db_user = User.model_validate(user)
+        session.add(db_user)
         session.commit()
-        session.refresh(user)
+        session.refresh(db_user)
         typer.echo(f"created {username} user")
-        return user
+        return db_user
 
 
 @main.command()

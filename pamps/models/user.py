@@ -1,9 +1,9 @@
-from typing import Optional, TYPE_CHECKING, Annotated
-from sqlmodel import Field, SQLModel, Relationship
+from typing import TYPE_CHECKING, Annotated
+from datetime import datetime
+from sqlmodel import Field, SQLModel, Relationship, UniqueConstraint
 from pydantic import BaseModel, BeforeValidator
 
 from ..security import get_password_hash
-#from ..security import HashedPassword # pydantic <2
 
 if TYPE_CHECKING:
     from .post import Post
@@ -11,16 +11,19 @@ if TYPE_CHECKING:
 
 HashedPassword = BeforeValidator(get_password_hash)
 
-class User(SQLModel, table=True):
+class UserBase(SQLModel):
     """Represents the User Model"""
-    
-    id: Optional[int] = Field(default=None, primary_key=True)
     email: str = Field(unique=True, nullable=False)
     username: str = Field(unique=True, nullable=False)
-    avatar: Optional[str] = None
-    bio: Optional[str] = None
-    password: Annotated[str, HashedPassword]
-    #password: HashedPassword # pydantic <2
+    avatar: str | None = None
+    bio: str | None = None
+    password: str #Annotated[str, HashedPassword]
+
+
+class User(UserBase, table=True):
+    """Represents the User table in the database"""
+    
+    id: int | None = Field(default=None, primary_key=True)
 
     # it populates the .user attribute on the Post Model
     posts: list["Post"] = Relationship(back_populates="user")
@@ -30,15 +33,11 @@ class UserResponse(BaseModel):
     """Serializer for User Response"""
 
     username: str
-    avatar: Optional[str] = None
-    bio: Optional[str] = None
+    avatar: str | None = None
+    bio: str | None = None
 
 
-class UserRequest(BaseModel):
+class UserRequest(UserBase):
     """Serializer for User request payload"""
-
-    email: str
-    username: str
-    password: str
-    avatar: Optional[str] = None
-    bio: Optional[str] = None
+    
+    password: Annotated[str, HashedPassword]
