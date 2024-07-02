@@ -1,6 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, status, HTTPException
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session, select
+from sqlalchemy.exc import IntegrityError
+from psycopg2.errors import UniqueViolation
 
 from ..db import ActiveSession
 from ..models.user import User, UserRequest, UserResponse
@@ -27,11 +29,19 @@ async def get_user_by_username(
     return user
 
 
-@router.post("/", response_model=UserResponse, status_code=201)
+@router.post("/", response_model=UserResponse, status_code=201, responses={400: {"model": None}})
 async def create_user(*, session: Session = ActiveSession, user: UserRequest):
     """Creates new user"""
     db_user = User.model_validate(user)  # transform UserRequest in User
-    session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
-    return db_user
+    try:
+        session.add(db_user)
+        session.commit()
+        session.refresh(db_user)
+        return db_user
+    except IntegrityError as e:
+        session.rollback()
+        match e.orig:
+            case UniqueViolation():
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e.orig.diag.message_detail}")
+            case _:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
