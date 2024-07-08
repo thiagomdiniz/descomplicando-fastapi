@@ -6,7 +6,8 @@ from sqlalchemy.exc import IntegrityError
 
 from ..db import ActiveSession
 from ..auth import AuthenticatedUser
-from ..models.user import User, UserRequest, UserResponse, Social#, SocialRequest
+from ..models.user import User, UserRequest, UserResponse, Social
+from ..models.post import Post, PostResponse
 
 router = APIRouter()
 
@@ -60,6 +61,7 @@ async def follow_user(
     user: User = AuthenticatedUser,
     id: int,
 ):
+    """Follow another user"""
     social = Social()
     social.from_id = user.id
     social.to_id = id
@@ -80,3 +82,23 @@ async def follow_user(
         #         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The user you are trying to follow does not exist")
         #     case _:
         #         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e.orig.diag.message_detail}")
+
+
+@router.get("/timeline", response_model=list[PostResponse])
+async def timeline(
+    *,
+    session: Session = ActiveSession,
+    user: User = AuthenticatedUser
+):
+    """List all posts from all users that the user follows"""
+    query = select(Post).join(
+        User, Post.user_id == User.id
+        ).join(
+            Social, Social.to_id == User.id
+        ).where(
+            Social.from_id == user.id
+        ).where(
+            Post.parent == None
+        )
+    posts = session.exec(query).all()
+    return posts
