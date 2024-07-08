@@ -41,3 +41,22 @@ class UserRequest(UserBase):
     """Serializer for User request payload"""
     
     password: Annotated[str, HashedPassword]
+
+
+class Social(SQLModel, table=True):
+    """Represents the Social Model"""
+    __table_args__ = (
+        UniqueConstraint("from_id", "to_id", name="unique_follow_constraint"),
+    )
+    id: int | None = Field(default=None, primary_key=True)
+    from_id: int = Field(foreign_key="user.id")
+    to_id: int = Field(foreign_key="user.id")
+    date: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+
+# class SocialRequest(BaseModel):
+#     """Serializer for Social request payload"""
+#     to_id: int
+
+#     class Config:
+#         extra = Extra.allow

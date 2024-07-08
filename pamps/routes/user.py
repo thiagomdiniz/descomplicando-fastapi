@@ -2,10 +2,11 @@ from fastapi import APIRouter, status, HTTPException
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session, select
 from sqlalchemy.exc import IntegrityError
-from psycopg2.errors import UniqueViolation
+# from psycopg2.errors import UniqueViolation, ForeignKeyViolation
 
 from ..db import ActiveSession
-from ..models.user import User, UserRequest, UserResponse
+from ..auth import AuthenticatedUser
+from ..models.user import User, UserRequest, UserResponse, Social#, SocialRequest
 
 router = APIRouter()
 
@@ -40,8 +41,42 @@ async def create_user(*, session: Session = ActiveSession, user: UserRequest):
         return db_user
     except IntegrityError as e:
         session.rollback()
-        match e.orig:
-            case UniqueViolation():
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e.orig.diag.message_detail}")
-            case _:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e.orig.diag.message_detail}")
+        # match e.orig:
+        #     case UniqueViolation():
+        #         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e.orig.diag.message_detail}")
+        #     case _:
+        #         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+
+@router.post(
+    "/follow/{id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={400: {"model": None}},
+)
+async def follow_user(
+    *,
+    session: Session = ActiveSession,
+    user: User = AuthenticatedUser,
+    id: int,
+):
+    social = Social()
+    social.from_id = user.id
+    social.to_id = id
+    if id == user.id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You can't follow yourself")
+    
+    try:
+        session.add(social)
+        session.commit()
+        session.refresh(social)
+    except IntegrityError as e:
+        session.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e.orig.diag.message_detail}")
+        # match e.orig:
+        #     case UniqueViolation():
+        #         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You already follow this user")
+        #     case ForeignKeyViolation():
+        #         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The user you are trying to follow does not exist")
+        #     case _:
+        #         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e.orig.diag.message_detail}")

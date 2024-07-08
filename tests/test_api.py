@@ -86,3 +86,24 @@ def test_all_posts_from_user1_with_replies(api_client):
     assert response.status_code == 200
     results = response.json()
     assert len(results) == 3
+
+
+@pytest.mark.order(4)
+def test_user1_follow_user2(api_client_user1):
+    response = api_client_user1.post("/user/follow/3")
+    assert response.status_code == 204
+    assert response.text is ""
+
+
+@pytest.mark.order(4)
+def test_user1_follow_itself(api_client_user1):
+    response = api_client_user1.post("/user/follow/1")
+    assert response.status_code == 400
+    assert "yourself" in response.text
+
+
+@pytest.mark.order(4)
+def test_user1_follow_nonexistent(api_client_user1):
+    response = api_client_user1.post("/user/follow/4")
+    assert response.status_code == 400
+    assert "not present" in response.text
