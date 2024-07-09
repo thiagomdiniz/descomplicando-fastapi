@@ -55,7 +55,7 @@ async def get_posts_by_username(
     return posts
 
 
-@router.post("/", response_model=PostResponse, status_code=201)
+@router.post("/", response_model=PostResponse, status_code=201, responses={400: {"model": None}})
 async def create_post(
     *,
     session: Session = ActiveSession,
@@ -74,10 +74,14 @@ async def create_post(
         if not parent:
             db_post.parent_id = None
     
-    session.add(db_post)
-    session.commit()
-    session.refresh(db_post)
-    return db_post
+    try:
+        session.add(db_post)
+        session.commit()
+        session.refresh(db_post)
+        return db_post
+    except IntegrityError as e:
+        session.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{e.orig.diag.message_detail}")
 
 
 @router.post("/like/{post_id}", status_code=status.HTTP_204_NO_CONTENT, responses={400: {"model": None}})
