@@ -107,3 +107,11 @@ def test_user1_follow_nonexistent(api_client_user1):
     response = api_client_user1.post("/user/follow/4")
     assert response.status_code == 400
     assert "not present" in response.text
+
+
+@pytest.mark.order(5)
+def test_user2_like_post(api_client_user2):
+    """user 2 likes a post from user 1"""
+    response = api_client_user2.post("/post/like/2")
+    assert response.status_code == 204
+    assert response.text is ""

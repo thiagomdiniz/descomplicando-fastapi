@@ -3,8 +3,10 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from pydantic import BaseModel, Extra
-from sqlmodel import Field, Relationship, SQLModel
+from pydantic import BaseModel, ConfigDict
+from sqlmodel import Field, Relationship, SQLModel, UniqueConstraint
+
+from .user import User
 
 if TYPE_CHECKING:
     from .user import User
@@ -47,18 +49,28 @@ class PostResponse(BaseModel):
 
 
 class PostResponseWithReplies(PostResponse):
-    replies: Optional[list["PostResponse"]] = None
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        orm_mode = True
+    replies: Optional[list["PostResponse"]] = None
 
 
 class PostRequest(BaseModel):
     """Serializer for Post request payload"""
+    model_config = ConfigDict(extra="allow", json_schema_extra={'examples': [{'parent_id': 0, 'text': 'string'}]})
 
-    parent_id: Optional[int]
+    parent_id: int | None = None
     text: str
 
-    class Config:
-        extra = Extra.allow
-        arbitrary_types_allowed = True
+
+class Like(SQLModel, table=True):
+    """Represents the Like Model"""
+    __table_args__ = (
+        UniqueConstraint("user_id", "post_id", name="unique_like_constraint"),
+    )
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    post_id: int = Field(foreign_key="post.id")
+
+    # It populates a `.likes` attribute to the `User` model.
+    user: User | None = Relationship(back_populates="likes")

@@ -6,7 +6,7 @@ from pydantic import BaseModel, BeforeValidator
 from ..security import get_password_hash
 
 if TYPE_CHECKING:
-    from .post import Post
+    from .post import Post, Like
 
 
 HashedPassword = BeforeValidator(get_password_hash)
@@ -27,6 +27,9 @@ class User(UserBase, table=True):
 
     # it populates the .user attribute on the Post Model
     posts: list["Post"] = Relationship(back_populates="user")
+
+    # it populates the .user attribute on the Like Model
+    likes: list["Like"] = Relationship(back_populates="user")
 
 
 class UserResponse(BaseModel):
