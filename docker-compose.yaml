@@ -9,8 +9,8 @@ services:
       PAMPS_DB__uri: "postgresql://postgres:postgres@db:5432/${PAMPS_DB:-pamps}"
       PAMPS_DB__connect_args: "{}"
     volumes:
-      #- .:/home/app/api
-      - /home/thiago/Documents/GitProjects/descomplicando-fastapi:/home/app/api
+      - $PWD:/home/app/api
+      # - /home/thiago/Documents/GitProjects/descomplicando-fastapi:/home/app/api
     depends_on:
       - db
     stdin_open: true
